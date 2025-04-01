@@ -829,15 +829,13 @@ void Blaster_Fire (edict_t *ent, vec3_t g_offset, int damage, qboolean hyper, in
 	VectorScale (forward, -2, ent->client->kick_origin);
 	ent->client->kick_angles[0] = -1;
 
-	fire_blaster (ent, start, forward, damage, 1000, effect, hyper);
+	// use railgun mechms
+	fire_rail(ent, start, forward, damage, 100);
 
 	// send muzzle flash
 	gi.WriteByte (svc_muzzleflash);
 	gi.WriteShort (ent-g_edicts);
-	if (hyper)
-		gi.WriteByte (MZ_HYPERBLASTER | is_silenced);
-	else
-		gi.WriteByte (MZ_BLASTER | is_silenced);
+	gi.WriteByte(MZ_RAILGUN | is_silenced);
 	gi.multicast (ent->s.origin, MULTICAST_PVS);
 
 	PlayerNoise(ent, start, PNOISE_WEAPON);
