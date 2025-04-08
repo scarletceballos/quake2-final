@@ -303,20 +303,21 @@ fire_blaster
 Fires a single blaster bolt.  Used by the blaster and hyper blaster.
 =================
 */
-void blaster_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
+void blaster_touch(edict_t* self, edict_t* other, cplane_t* plane, csurface_t* surf)
 {
-	int		mod;
+	int     mod;
+	int     effect_type;
 
 	if (other == self->owner)
 		return;
 
 	if (surf && (surf->flags & SURF_SKY))
 	{
-		G_FreeEdict (self);
+		G_FreeEdict(self);
 		return;
 	}
 
-	if (self->owner->client)
+	if (self->owner && self->owner->client)
 		PlayerNoise(self->owner, self->s.origin, PNOISE_IMPACT);
 
 	if (other->takedamage)
@@ -325,21 +326,63 @@ void blaster_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *
 			mod = MOD_HYPERBLASTER;
 		else
 			mod = MOD_BLASTER;
-		T_Damage (other, self, self->owner, self->velocity, self->s.origin, plane->normal, self->dmg, 1, DAMAGE_ENERGY, mod);
+		T_Damage(other, self, self->owner, self->velocity, self->s.origin, plane->normal, self->dmg, 1, DAMAGE_ENERGY, mod);
+		G_FreeEdict(self);
+		return;
 	}
 	else
 	{
-		gi.WriteByte (svc_temp_entity);
-		gi.WriteByte (TE_BLASTER);
-		gi.WritePosition (self->s.origin);
-		if (!plane)
-			gi.WriteDir (vec3_origin);
-		else
-			gi.WriteDir (plane->normal);
-		gi.multicast (self->s.origin, MULTICAST_PVS);
-	}
+		// For random visual effects, use a safe approach - only switch between
+		// TE_BLASTER and TE_BLASTER2 which have compatible formats
 
-	G_FreeEdict (self);
+		// Use the effect that's already set on the entity if it's one of the safe ones
+		if (self->s.effects & EF_HYPERBLASTER)
+			effect_type = TE_BLASTER2;  // Blue impact
+		else
+			effect_type = TE_BLASTER;   // Yellow impact (default)
+
+		// Optional: Randomize between the two safe effects
+		if (rand() % 2 == 0)
+			effect_type = (effect_type == TE_BLASTER) ? TE_BLASTER2 : TE_BLASTER;
+
+		if (self->count >= 3)
+		{
+			// Final impact
+			gi.WriteByte(svc_temp_entity);
+			gi.WriteByte(effect_type);
+			gi.WritePosition(self->s.origin);
+			if (!plane)
+				gi.WriteDir(vec3_origin);
+			else
+				gi.WriteDir(plane->normal);
+			gi.multicast(self->s.origin, MULTICAST_PVS);
+
+			G_FreeEdict(self);
+		}
+		else
+		{
+			if (plane)
+			{
+				self->count++;
+
+				gi.sound(self, CHAN_VOICE, gi.soundindex("weapons/bounce.wav"), 1, ATTN_NORM, 0);
+
+				float dot = DotProduct(self->velocity, plane->normal);
+				VectorMA(self->velocity, -2 * dot, plane->normal, self->velocity);
+				VectorScale(self->velocity, 0.8, self->velocity);
+				vectoangles(self->velocity, self->s.angles);
+
+				gi.WriteByte(svc_temp_entity);
+				gi.WriteByte(effect_type);
+				gi.WritePosition(self->s.origin);
+				gi.WriteDir(plane->normal);
+				gi.multicast(self->s.origin, MULTICAST_PVS);
+
+				// Make sure entity remains linked to the world
+				gi.linkentity(self);
+			}
+		}
+	}
 }
 
 void fire_blaster (edict_t *self, vec3_t start, vec3_t dir, int damage, int speed, int effect, qboolean hyper)
@@ -374,6 +417,11 @@ void fire_blaster (edict_t *self, vec3_t start, vec3_t dir, int damage, int spee
 	bolt->think = G_FreeEdict;
 	bolt->dmg = damage;
 	bolt->classname = "bolt";
+
+	bolt->count = 0;
+
+	bolt->nextthink = level.time + 5;
+
 	if (hyper)
 		bolt->spawnflags = 1;
 	gi.linkentity (bolt);

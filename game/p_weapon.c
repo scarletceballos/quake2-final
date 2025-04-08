@@ -818,6 +818,29 @@ void Blaster_Fire (edict_t *ent, vec3_t g_offset, int damage, qboolean hyper, in
 	vec3_t	forward, right;
 	vec3_t	start;
 	vec3_t	offset;
+	int		rand_effect;
+
+	// use colors of other weapons since x86 is only this scope
+	switch (rand() % 5) {
+	case 0:
+		rand_effect = EF_BLASTER;         // Yellow (default)
+		break;
+	case 1:
+		rand_effect = EF_HYPERBLASTER;    // Blue
+		break;
+	case 2:
+		rand_effect = EF_BFG;             // Green
+		break;
+	case 3:
+		rand_effect = EF_GRENADE;         // Orange
+		break;
+	case 4:
+		rand_effect = EF_ROCKET;          // Red
+		break;
+	default:
+		rand_effect = effect;             // Use the provided effect as fallback
+		break;
+	}
 
 	if (is_quad)
 		damage *= 4;
@@ -829,13 +852,12 @@ void Blaster_Fire (edict_t *ent, vec3_t g_offset, int damage, qboolean hyper, in
 	VectorScale (forward, -2, ent->client->kick_origin);
 	ent->client->kick_angles[0] = -1;
 
-	// use railgun mechms
-	fire_rail(ent, start, forward, damage, 100);
+	fire_blaster(ent, start, forward, damage, 1000, rand_effect, hyper);
 
 	// send muzzle flash
 	gi.WriteByte (svc_muzzleflash);
 	gi.WriteShort (ent-g_edicts);
-	gi.WriteByte(MZ_RAILGUN | is_silenced);
+	gi.WriteByte(MZ_BLASTER | is_silenced);
 	gi.multicast (ent->s.origin, MULTICAST_PVS);
 
 	PlayerNoise(ent, start, PNOISE_WEAPON);
@@ -847,10 +869,10 @@ void Weapon_Blaster_Fire (edict_t *ent)
 	int		damage;
 
 	if (deathmatch->value)
-		damage = 15;
+		damage = 20;
 	else
-		damage = 10;
-	Blaster_Fire (ent, vec3_origin, damage, false, EF_BLASTER);
+		damage = 15;
+	Blaster_Fire(ent, vec3_origin, damage, false, EF_BLASTER);
 	ent->client->ps.gunframe++;
 }
 
