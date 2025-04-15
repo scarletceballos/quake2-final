@@ -26,6 +26,7 @@
     <SccProjectName />
     <SccLocalPath />
     <ProjectGuid>{F575AF4A-7BDD-47F6-B65F-F43C514E0069}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Template|Win32'" Label="Configuration">
