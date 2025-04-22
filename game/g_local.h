@@ -447,13 +447,24 @@ typedef struct
 	int			power_armor_power;
 } monsterinfo_t;
 
-
+typedef struct {
+	int curr_wave;          // Current wave num
+	int en_per_wave;        // Enemies per wave
+	int en_spawned;         // Enemies spawned in the current 
+	int en_remaining;       // Enemies remaining in the current 
+	qboolean active_wave;   // Whether a wave is current
+	float next_spawn_time;  // Time for the next enemy spawn
+	float delay_spawn;      // Delay between each spawn
+	int waves_in_set;       // Number of waves in curr set
+	int waves_completed;    // Number of waves completed in curr set
+} wave_system_t;
 
 extern	game_locals_t	game;
 extern	level_locals_t	level;
 extern	game_import_t	gi;
 extern	game_export_t	globals;
 extern	spawn_temp_t	st;
+extern wave_system_t g_wave_system;
 
 extern	int	sm_meat_index;
 extern	int	snd_fry;
@@ -693,6 +704,16 @@ void M_CatagorizePosition (edict_t *ent);
 qboolean M_CheckAttack (edict_t *self);
 void M_FlyCheck (edict_t *self);
 void M_CheckGround (edict_t *ent);
+
+//
+// g_waves.c
+//
+void InitWaveSystem(void);
+void StartWave(int wave_number);
+void WaveThink(void);
+void SpawnEnemy(char* classname, vec3_t origin, vec3_t angles);
+qboolean GetRandSpwnLocation(vec3_t origin, vec3_t angles);
+void Cmd_SpawnWave_f(edict_t* ent);
 
 //
 // g_misc.c

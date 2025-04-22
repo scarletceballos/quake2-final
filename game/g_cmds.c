@@ -899,6 +899,22 @@ void Cmd_PlayerList_f(edict_t *ent)
 	gi.cprintf(ent, PRINT_HIGH, "%s", text);
 }
 
+void stuffcmd(edict_t* ent, const char* cmd) {
+	if (!ent || !ent->client) {
+		return; // Ensure the entity is valid and has a client
+	}
+	gi.WriteByte(svc_stufftext); // svc_stufftext is the opcode for sending commands
+	gi.WriteString(cmd);         // Write the command string
+	gi.unicast(ent, true);       // Send the command to the client
+}
+
+void Cmd_BindWaveKey_f(edict_t* ent)
+{
+	// Bind the "o" key to the "startwave" command on the client
+	stuffcmd(ent, "bind o \"cmd startwave\"\n");
+	gi.cprintf(ent, PRINT_HIGH, "Bound the 'o' key to start waves.\n");
+}
+
 
 /*
 =================
@@ -937,6 +953,17 @@ void ClientCommand (edict_t *ent)
 	if (Q_stricmp (cmd, "help") == 0)
 	{
 		Cmd_Help_f (ent);
+		return;
+	}
+	if (Q_stricmp(cmd, "startwave") == 0)
+	{
+		Cmd_SpawnWave_f(ent);
+		return;
+	}
+
+	if (Q_stricmp(cmd, "bindwavekey") == 0)
+	{
+		Cmd_BindWaveKey_f(ent);
 		return;
 	}
 
@@ -987,6 +1014,8 @@ void ClientCommand (edict_t *ent)
 		Cmd_Wave_f (ent);
 	else if (Q_stricmp(cmd, "playerlist") == 0)
 		Cmd_PlayerList_f(ent);
+	else if (Q_stricmp(cmd, "spawnwave") == 0)
+		Cmd_SpawnWave_f(ent);
 	else	// anything that doesn't match a command will be a chat
 		Cmd_Say_f (ent, false, true);
 }

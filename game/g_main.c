@@ -402,6 +402,8 @@ void G_RunFrame (void)
 		G_RunEntity (ent);
 	}
 
+	WaveThink();
+
 	// see if it is time to end a deathmatch
 	CheckDMRules ();
 

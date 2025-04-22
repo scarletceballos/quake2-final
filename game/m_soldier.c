@@ -1239,7 +1239,7 @@ void SP_monster_soldier_light (edict_t *self)
 {
 	if (deathmatch->value)
 	{
-		G_FreeEdict (self);
+		G_FreeEdict(self);
 		return;
 	}
 
@@ -1262,7 +1262,7 @@ void SP_monster_soldier (edict_t *self)
 {
 	if (deathmatch->value)
 	{
-		G_FreeEdict (self);
+		G_FreeEdict(self);
 		return;
 	}
 
@@ -1283,7 +1283,7 @@ void SP_monster_soldier_ss (edict_t *self)
 {
 	if (deathmatch->value)
 	{
-		G_FreeEdict (self);
+		G_FreeEdict(self);
 		return;
 	}
 

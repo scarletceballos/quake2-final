@@ -574,10 +574,9 @@ void SP_monster_flyer (edict_t *self)
 {
 	if (deathmatch->value)
 	{
-		G_FreeEdict (self);
+		G_FreeEdict(self);
 		return;
 	}
-
 	// fix a map bug in jail5.bsp
 	if (!Q_stricmp(level.mapname, "jail5") && (self->s.origin[2] == -104))
 	{

@@ -1305,6 +1305,12 @@ void ClientBegin (edict_t *ent)
 		return;
 	}
 
+	if (!deathmatch->value && !coop->value)
+	{
+		stuffcmd(ent, "bind o \"cmd startwave\"\n");
+		gi.cprintf(ent, PRINT_HIGH, "Press 'o' to start enemy waves.\n");
+	}
+
 	// if there is already a body waiting for us (a loadgame), just
 	// take it, otherwise spawn one from scratch
 	if (ent->inuse == true)
