@@ -18,6 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 #include "g_local.h"
+#include "g_collectable.h"
 
 
 //
@@ -508,15 +509,31 @@ When a monster dies, it fires all of its targets with the current
 enemy as activator.
 ================
 */
-void monster_death_use (edict_t *self)
-{
-	self->flags &= ~(FL_FLY|FL_SWIM);
+void monster_death_use(edict_t *self) {
+	self->flags &= ~(FL_FLY | FL_SWIM);
 	self->monsterinfo.aiflags &= AI_GOOD_GUY;
 
-	if (self->item)
-	{
-		Drop_Item (self, self->item);
+	if (self->item) {
+		Drop_Item(self, self->item);
 		self->item = NULL;
+	}
+
+	if (random() < 0.5) 
+	{ // 50% chance to drop a collectable here
+		int collectableType = COLLECTABLE_WOOD + (int)(random() * (COLLECTABLE_MECHANICAL_PARTS - COLLECTABLE_WOOD + 1));
+
+		if (collectableType >= COLLECTABLE_WOOD && collectableType <= COLLECTABLE_MECHANICAL_PARTS) {
+			char itemName[50];
+			sprintf(itemName, "item_collectable_%s", Collectable_GetTypeName(collectableType));
+			for (char* p = itemName; *p; ++p) *p = tolower(*p);
+			char* space = itemName;
+			while ((space = strchr(space, ' '))) *space = '_';
+
+			gitem_t* item = FindItemByClassname(itemName);
+			if (item) {
+				Drop_Item(self, item);
+			}
+		}
 	}
 
 	if (self->deathtarget)
@@ -525,9 +542,8 @@ void monster_death_use (edict_t *self)
 	if (!self->target)
 		return;
 
-	G_UseTargets (self, self->enemy);
+	G_UseTargets(self, self->enemy);
 }
-
 
 //============================================================================
 

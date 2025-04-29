@@ -18,22 +18,23 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 #include "g_local.h"
+#include "g_collectable.h"
 
 
 qboolean	Pickup_Weapon (edict_t *ent, edict_t *other);
 void		Use_Weapon (edict_t *ent, gitem_t *inv);
 void		Drop_Weapon (edict_t *ent, gitem_t *inv);
 
-void Weapon_Blaster (edict_t *ent);
-void Weapon_Shotgun (edict_t *ent);
-void Weapon_SuperShotgun (edict_t *ent);
-void Weapon_Machinegun (edict_t *ent);
-void Weapon_Chaingun (edict_t *ent);
-void Weapon_HyperBlaster (edict_t *ent);
-void Weapon_RocketLauncher (edict_t *ent);
-void Weapon_Grenade (edict_t *ent);
-void Weapon_GrenadeLauncher (edict_t *ent);
-void Weapon_Railgun (edict_t *ent);
+void Weapon_Blaster(edict_t *ent);
+void Weapon_Shotgun(edict_t *ent);
+void Weapon_SuperShotgun(edict_t *ent);
+void Weapon_Machinegun(edict_t *ent);
+void Weapon_Chaingun(edict_t *ent);
+void Weapon_HyperBlaster(edict_t *ent);
+void Weapon_RocketLauncher(edict_t *ent);
+void Weapon_Grenade(edict_t *ent);
+void Weapon_GrenadeLauncher(edict_t *ent);
+void Weapon_Railgun(edict_t *ent);
 void Weapon_BFG (edict_t *ent);
 
 gitem_armor_t jacketarmor_info	= { 25,  50, .30, .00, ARMOR_JACKET};
@@ -336,6 +337,25 @@ qboolean Pickup_Pack (edict_t *ent, edict_t *other)
 
 //======================================================================
 
+qboolean Pickup_Collectable(edict_t* ent, edict_t* other)
+{
+	if (!other->client)
+		return false;
+
+	CollectableType type = (CollectableType)ent->item->tag;
+
+	// Add to player's inventory
+	other->client->pers.inventory[type]++;
+
+	// Show pickup message
+	gi.cprintf(other, PRINT_HIGH, "Picked up %s\n", Collectable_GetTypeName(type));
+
+	gi.sound(other, CHAN_ITEM, gi.soundindex("items/pkup.wav"), 1, ATTN_NORM, 0);
+
+	return true;
+}
+
+//======================================================================
 void Use_Quad (edict_t *ent, gitem_t *item)
 {
 	int		timeout;
@@ -1288,233 +1308,233 @@ gitem_t	itemlist[] =
 /* weapon_blaster (.3 .3 1) (-16 -16 -16) (16 16 16)
 always owned, never in the world
 */
-	{
+   {
 		"weapon_blaster", 
 		NULL,
-		Use_Weapon,
+	   Use_Weapon,
 		NULL,
 		Weapon_Blaster,
-		"misc/w_pkup.wav",
-		NULL, 0,
-		"models/weapons/v_blast/tris.md2",
+	   "misc/w_pkup.wav",
+	   NULL, 0,
+	   "models/weapons/v_blast/tris.md2",
 /* icon */		"w_blaster",
 /* pickup */	"Blaster",
-		0,
+	   0,
 		0,
 		NULL,
 		IT_WEAPON|IT_STAY_COOP,
-		WEAP_BLASTER,
-		NULL,
-		0,
+	   WEAP_BLASTER,
+	   NULL,
+	   0,
 /* precache */ "weapons/blastf1a.wav misc/lasfly.wav"
-	},
+   },
 
 /*QUAKED weapon_shotgun (.3 .3 1) (-16 -16 -16) (16 16 16)
 */
-	{
+{
 		"weapon_shotgun", 
-		Pickup_Weapon,
-		Use_Weapon,
-		Drop_Weapon,
+	Pickup_Weapon,
+	Use_Weapon,
+	Drop_Weapon,
 		Weapon_Shotgun,
-		"misc/w_pkup.wav",
+	"misc/w_pkup.wav",
 		"models/weapons/g_shotg/tris.md2", EF_ROTATE,
-		"models/weapons/v_shotg/tris.md2",
+	"models/weapons/v_shotg/tris.md2",
 /* icon */		"w_shotgun",
 /* pickup */	"Shotgun",
-		0,
+	0,
 		1,
 		"Shells",
-		IT_WEAPON|IT_STAY_COOP,
-		WEAP_SHOTGUN,
-		NULL,
-		0,
+	IT_WEAPON|IT_STAY_COOP,
+	WEAP_SHOTGUN,
+	NULL,
+	0,
 /* precache */ "weapons/shotgf1b.wav weapons/shotgr1b.wav"
-	},
+},
 
 /*QUAKED weapon_supershotgun (.3 .3 1) (-16 -16 -16) (16 16 16)
 */
-	{
+{
 		"weapon_supershotgun", 
-		Pickup_Weapon,
-		Use_Weapon,
-		Drop_Weapon,
+    Pickup_Weapon,
+    Use_Weapon,
+    Drop_Weapon,
 		Weapon_SuperShotgun,
-		"misc/w_pkup.wav",
-		"models/weapons/g_shotg2/tris.md2", EF_ROTATE,
-		"models/weapons/v_shotg2/tris.md2",
+    "misc/w_pkup.wav",
+    "models/weapons/g_shotg2/tris.md2", EF_ROTATE,
+    "models/weapons/v_shotg2/tris.md2",
 /* icon */		"w_sshotgun",
 /* pickup */	"Super Shotgun",
-		0,
+    0,
 		2,
 		"Shells",
-		IT_WEAPON|IT_STAY_COOP,
-		WEAP_SUPERSHOTGUN,
-		NULL,
-		0,
+    IT_WEAPON|IT_STAY_COOP,
+    WEAP_SUPERSHOTGUN,
+    NULL,
+    0,
 /* precache */ "weapons/sshotf1b.wav"
-	},
+},
 
 /*QUAKED weapon_machinegun (.3 .3 1) (-16 -16 -16) (16 16 16)
 */
-	{
+{
 		"weapon_machinegun", 
-		Pickup_Weapon,
-		Use_Weapon,
-		Drop_Weapon,
-		Weapon_Machinegun,
-		"misc/w_pkup.wav",
-		"models/weapons/g_machn/tris.md2", EF_ROTATE,
-		"models/weapons/v_machn/tris.md2",
+	Pickup_Weapon,
+	Use_Weapon,
+	Drop_Weapon,
+	Weapon_Machinegun,
+	"misc/w_pkup.wav",
+	"models/weapons/g_machn/tris.md2", EF_ROTATE,
+	"models/weapons/v_machn/tris.md2",
 /* icon */		"w_machinegun",
 /* pickup */	"Machinegun",
-		0,
+	0,
 		1,
 		"Bullets",
-		IT_WEAPON|IT_STAY_COOP,
-		WEAP_MACHINEGUN,
-		NULL,
-		0,
+	IT_WEAPON|IT_STAY_COOP,
+	WEAP_MACHINEGUN,
+	NULL,
+	0,
 /* precache */ "weapons/machgf1b.wav weapons/machgf2b.wav weapons/machgf3b.wav weapons/machgf4b.wav weapons/machgf5b.wav"
-	},
+},
 
 /*QUAKED weapon_chaingun (.3 .3 1) (-16 -16 -16) (16 16 16)
 */
-	{
-		"weapon_chaingun", 
-		Pickup_Weapon,
-		Use_Weapon,
-		Drop_Weapon,
+{
+	"weapon_chaingun",
+	Pickup_Weapon,
+	Use_Weapon,
+	Drop_Weapon,
 		Weapon_Chaingun,
-		"misc/w_pkup.wav",
-		"models/weapons/g_chain/tris.md2", EF_ROTATE,
-		"models/weapons/v_chain/tris.md2",
+	"misc/w_pkup.wav",
+	"models/weapons/g_chain/tris.md2", EF_ROTATE,
+	"models/weapons/v_chain/tris.md2",
 /* icon */		"w_chaingun",
 /* pickup */	"Chaingun",
-		0,
+	0,
 		1,
 		"Bullets",
-		IT_WEAPON|IT_STAY_COOP,
-		WEAP_CHAINGUN,
-		NULL,
-		0,
+	IT_WEAPON|IT_STAY_COOP,
+	WEAP_CHAINGUN,
+	NULL,
+	0,
 /* precache */ "weapons/chngnu1a.wav weapons/chngnl1a.wav weapons/machgf3b.wav` weapons/chngnd1a.wav"
-	},
+},
 
 /*QUAKED ammo_grenades (.3 .3 1) (-16 -16 -16) (16 16 16)
 */
-	{
+{
 		"ammo_grenades",
 		Pickup_Ammo,
-		Use_Weapon,
+	Use_Weapon,
 		Drop_Ammo,
 		Weapon_Grenade,
-		"misc/am_pkup.wav",
-		"models/items/ammo/grenades/medium/tris.md2", 0,
-		"models/weapons/v_handgr/tris.md2",
+	"misc/am_pkup.wav",
+	"models/items/ammo/grenades/medium/tris.md2", 0,
+	"models/weapons/v_handgr/tris.md2",
 /* icon */		"a_grenades",
 /* pickup */	"Grenades",
 /* width */		3,
 		5,
 		"grenades",
-		IT_AMMO|IT_WEAPON,
-		WEAP_GRENADES,
-		NULL,
-		AMMO_GRENADES,
+	IT_AMMO|IT_WEAPON,
+	WEAP_GRENADES,
+	NULL,
+	AMMO_GRENADES,
 /* precache */ "weapons/hgrent1a.wav weapons/hgrena1b.wav weapons/hgrenc1b.wav weapons/hgrenb1a.wav weapons/hgrenb2a.wav "
-	},
+},
 
 /*QUAKED weapon_grenadelauncher (.3 .3 1) (-16 -16 -16) (16 16 16)
 */
-	{
+{
 		"weapon_grenadelauncher",
-		Pickup_Weapon,
-		Use_Weapon,
-		Drop_Weapon,
+	Pickup_Weapon,
+	Use_Weapon,
+	Drop_Weapon,
 		Weapon_GrenadeLauncher,
-		"misc/w_pkup.wav",
-		"models/weapons/g_launch/tris.md2", EF_ROTATE,
-		"models/weapons/v_launch/tris.md2",
+	"misc/w_pkup.wav",
+	"models/weapons/g_launch/tris.md2", EF_ROTATE,
+	"models/weapons/v_launch/tris.md2",
 /* icon */		"w_glauncher",
 /* pickup */	"Grenade Launcher",
-		0,
+	0,
 		1,
 		"Grenades",
-		IT_WEAPON|IT_STAY_COOP,
-		WEAP_GRENADELAUNCHER,
-		NULL,
-		0,
+	IT_WEAPON|IT_STAY_COOP,
+	WEAP_GRENADELAUNCHER,
+	NULL,
+	0,
 /* precache */ "models/objects/grenade/tris.md2 weapons/grenlf1a.wav weapons/grenlr1b.wav weapons/grenlb1b.wav"
-	},
+},
 
 /*QUAKED weapon_rocketlauncher (.3 .3 1) (-16 -16 -16) (16 16 16)
 */
-	{
+{
 		"weapon_rocketlauncher",
-		Pickup_Weapon,
-		Use_Weapon,
-		Drop_Weapon,
+	Pickup_Weapon,
+	Use_Weapon,
+	Drop_Weapon,
 		Weapon_RocketLauncher,
-		"misc/w_pkup.wav",
-		"models/weapons/g_rocket/tris.md2", EF_ROTATE,
-		"models/weapons/v_rocket/tris.md2",
+	"misc/w_pkup.wav",
+	"models/weapons/g_rocket/tris.md2", EF_ROTATE,
+	"models/weapons/v_rocket/tris.md2",
 /* icon */		"w_rlauncher",
 /* pickup */	"Rocket Launcher",
-		0,
+	0,
 		1,
 		"Rockets",
 		IT_WEAPON|IT_STAY_COOP,
-		WEAP_ROCKETLAUNCHER,
-		NULL,
-		0,
+	WEAP_ROCKETLAUNCHER,
+	NULL,
+	0,
 /* precache */ "models/objects/rocket/tris.md2 weapons/rockfly.wav weapons/rocklf1a.wav weapons/rocklr1b.wav models/objects/debris2/tris.md2"
-	},
+},
 
 /*QUAKED weapon_hyperblaster (.3 .3 1) (-16 -16 -16) (16 16 16)
 */
-	{
+{
 		"weapon_hyperblaster", 
-		Pickup_Weapon,
-		Use_Weapon,
-		Drop_Weapon,
+	Pickup_Weapon,
+	Use_Weapon,
+	Drop_Weapon,
 		Weapon_HyperBlaster,
-		"misc/w_pkup.wav",
-		"models/weapons/g_hyperb/tris.md2", EF_ROTATE,
-		"models/weapons/v_hyperb/tris.md2",
+	"misc/w_pkup.wav",
+	"models/weapons/g_hyperb/tris.md2", EF_ROTATE,
+	"models/weapons/v_hyperb/tris.md2",
 /* icon */		"w_hyperblaster",
 /* pickup */	"HyperBlaster",
-		0,
+	0,
 		1,
 		"Cells",
 		IT_WEAPON|IT_STAY_COOP,
-		WEAP_HYPERBLASTER,
-		NULL,
-		0,
+	WEAP_HYPERBLASTER,
+	NULL,
+	0,
 /* precache */ "weapons/hyprbu1a.wav weapons/hyprbl1a.wav weapons/hyprbf1a.wav weapons/hyprbd1a.wav misc/lasfly.wav"
-	},
+},
 
 /*QUAKED weapon_railgun (.3 .3 1) (-16 -16 -16) (16 16 16)
 */
-	{
+{
 		"weapon_railgun", 
-		Pickup_Weapon,
-		Use_Weapon,
-		Drop_Weapon,
+	Pickup_Weapon,
+	Use_Weapon,
+	Drop_Weapon,
 		Weapon_Railgun,
-		"misc/w_pkup.wav",
-		"models/weapons/g_rail/tris.md2", EF_ROTATE,
-		"models/weapons/v_rail/tris.md2",
+	"misc/w_pkup.wav",
+	"models/weapons/g_rail/tris.md2", EF_ROTATE,
+	"models/weapons/v_rail/tris.md2",
 /* icon */		"w_railgun",
 /* pickup */	"Railgun",
-		0,
+	0,
 		1,
 		"Slugs",
 		IT_WEAPON|IT_STAY_COOP,
 		WEAP_RAILGUN,
-		NULL,
-		0,
+	NULL,
+	0,
 /* precache */ "weapons/rg_hum.wav"
-	},
+},
 
 /*QUAKED weapon_bfg (.3 .3 1) (-16 -16 -16) (16 16 16)
 */
@@ -2110,7 +2130,120 @@ tank commander's head
 		0,
 /* precache */ "items/s_health.wav items/n_health.wav items/l_health.wav items/m_health.wav"
 	},
+	/*QUAKED item_collectable_wood (.3 .3 1) (-16 -16 -16) (16 16 16)
+*/
+	{
+		"item_collectable_wood",
+		Pickup_Collectable,
+		NULL,
+		NULL,
+		NULL,
+		"items/pkup.wav",
+		"models/items/healing/stimpack/tris.md2", EF_ROTATE,
+		NULL,
+		/* icon */        "i_health",
+		/* pickup */    "Wood",
+		/* width */        2,
+				1,
+				NULL,
+				IT_COLLECTABLE,
+				0,
+				NULL,
+				COLLECTABLE_WOOD,
+				/* precache */ ""
+	},
 
+	/*QUAKED item_collectable_metal (.3 .3 1) (-16 -16 -16) (16 16 16)
+	*/
+	{
+		"item_collectable_metal",
+		Pickup_Collectable,
+		NULL,
+		NULL,
+		NULL,
+		"items/pkup.wav",
+		"models/items/healing/stimpack/tris.md2", EF_ROTATE,
+		NULL,
+		/* icon */        "i_health", 
+		/* pickup */    "Metal",
+		/* width */        2,
+				1,
+				NULL,
+				IT_COLLECTABLE,
+				0,
+				NULL,
+				COLLECTABLE_METAL,
+				/* precache */ ""
+	},
+
+	/*QUAKED item_collectable_stone (.3 .3 1) (-16 -16 -16) (16 16 16)
+	*/
+	{
+		"item_collectable_stone",
+		Pickup_Collectable,
+		NULL,
+		NULL,
+		NULL,
+		"items/pkup.wav",
+		"models/items/healing/stimpack/tris.md2", EF_ROTATE,
+		NULL,
+		/* icon */        "i_health",  
+		/* pickup */    "Stone",
+		/* width */        2,
+				1,
+				NULL,
+				IT_COLLECTABLE,
+				0,
+				NULL,
+				COLLECTABLE_STONE,
+				/* precache */ ""
+	},
+
+	/*QUAKED item_collectable_ore (.3 .3 1) (-16 -16 -16) (16 16 16)
+	*/
+	{
+		"item_collectable_ore",
+		Pickup_Collectable,
+		NULL,
+		NULL,
+		NULL,
+		"items/pkup.wav",
+		"models/items/healing/stimpack/tris.md2", EF_ROTATE,
+		NULL,
+		/* icon */        "i_health",
+		/* pickup */    "Ore",
+		/* width */        2,
+				1,
+				NULL,
+				IT_COLLECTABLE,
+				0,
+				NULL,
+				COLLECTABLE_ORE,
+				/* precache */ ""
+	},
+
+	/*QUAKED item_collectable_mechanical_parts (.3 .3 1) (-16 -16 -16) (16 16 16)
+	*/
+	{
+		"item_collectable_mechanical_parts",
+		Pickup_Collectable,
+		NULL,
+		NULL,
+		NULL,
+		"items/pkup.wav",
+		"models/items/healing/stimpack/tris.md2", EF_ROTATE,
+		NULL,
+		/* icon */        "i_health",
+		/* pickup */    "Mechanical Parts",
+		/* width */        2,
+				1,
+				NULL,
+				IT_COLLECTABLE,
+				0,
+				NULL,
+				COLLECTABLE_MECHANICAL_PARTS,
+				/* precache */ ""
+	},
 	// end of list marker
 	{NULL}
 };
@@ -2182,13 +2315,50 @@ void SP_item_health_mega (edict_t *self)
 	self->style = HEALTH_IGNORE_MAX|HEALTH_TIMED;
 }
 
+/*QUAKED item_collectable_wood (.3 .3 1) (-16 -16 -16) (16 16 16)
+*/
+void SP_item_collectable_wood(edict_t* self)
+{
+	self->model = "models/items/healing/stimpack/tris.md2"; 
+	SpawnItem(self, FindItem("Wood"));
+}
+
+/*QUAKED item_collectable_metal (.3 .3 1) (-16 -16 -16) (16 16 16)
+*/
+void SP_item_collectable_metal(edict_t* self)
+{
+	self->model = "models/items/healing/stimpack/tris.md2"; 
+	SpawnItem(self, FindItem("Metal"));
+}
+
+/*QUAKED item_collectable_stone (.3 .3 1) (-16 -16 -16) (16 16 16)
+*/
+void SP_item_collectable_stone(edict_t* self)
+{
+	self->model = "models/items/healing/stimpack/tris.md2";
+	SpawnItem(self, FindItem("Stone"));
+}
+
+/*QUAKED item_collectable_ore (.3 .3 1) (-16 -16 -16) (16 16 16)
+*/
+void SP_item_collectable_ore(edict_t* self)
+{
+	self->model = "models/items/healing/stimpack/tris.md2";
+	SpawnItem(self, FindItem("Ore"));
+}
+
+/*QUAKED item_collectable_mechanical_parts (.3 .3 1) (-16 -16 -16) (16 16 16)
+*/
+void SP_item_collectable_mechanical_parts(edict_t* self)
+{
+	self->model = "models/items/healing/stimpack/tris.md2"; 
+	SpawnItem(self, FindItem("Mechanical Parts"));
+}
 
 void InitItems (void)
 {
 	game.num_items = sizeof(itemlist)/sizeof(itemlist[0]) - 1;
 }
-
-
 
 /*
 ===============

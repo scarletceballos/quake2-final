@@ -80,6 +80,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define MELEE_DISTANCE	80
 
 #define BODY_QUEUE_SIZE		8
+#define IT_COLLECTABLE    128
 
 typedef enum
 {
@@ -796,12 +797,22 @@ void ClientEndServerFrame (edict_t *ent);
 //
 // p_hud.c
 //
-void MoveClientToIntermission (edict_t *client);
-void G_SetStats (edict_t *ent);
-void G_SetSpectatorStats (edict_t *ent);
-void G_CheckChaseStats (edict_t *ent);
-void ValidateSelectedItem (edict_t *ent);
-void DeathmatchScoreboardMessage (edict_t *client, edict_t *killer);
+void MoveClientToIntermission(edict_t *client);
+void G_SetStats(edict_t *ent);
+void G_SetSpectatorStats(edict_t *ent);
+void G_CheckChaseStats(edict_t *ent);
+void ValidateSelectedItem(edict_t *ent);
+void DeathmatchScoreboardMessage(edict_t *client, edict_t *killer);
+void G_SetStatusBar(void);
+
+//
+// p_collectables.c
+//
+void CollectablesLayout(edict_t *ent);
+void Cmd_ShowCollectables_f(edict_t *ent);
+void G_SetStatusBar(void);
+void ShopLayout(edict_t *ent);
+
 
 //
 // g_pweapon.c
@@ -846,6 +857,13 @@ void GetChaseTarget(edict_t *ent);
 #define	ANIM_DEATH		5
 #define	ANIM_REVERSE	6
 
+#define STAT_COLLECTABLES_LAYOUT   20
+#define STAT_WOOD_COUNT            21
+#define STAT_METAL_COUNT           22
+#define STAT_STONE_COUNT           23
+#define STAT_ORE_COUNT             24
+#define STAT_MECH_PARTS_COUNT      25
+#define STAT_SHOWCOLLECTABLES      26
 
 // client data that stays across multiple level loads
 typedef struct
@@ -913,7 +931,7 @@ struct gclient_s
 	qboolean	showinventory;		// set layout stat
 	qboolean	showhelp;
 	qboolean	showhelpicon;
-
+	qboolean	showshop; 
 	int			ammo_index;
 
 	int			buttons;

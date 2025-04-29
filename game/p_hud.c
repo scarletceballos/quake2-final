@@ -18,6 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 #include "g_local.h"
+#include "g_collectable.h"
 
 
 
@@ -340,21 +341,21 @@ void HelpComputer (edict_t *ent)
 ==================
 Cmd_Help_f
 
-Display the current help message
+Display the current help message or collectables
 ==================
 */
-void Cmd_Help_f (edict_t *ent)
+void Cmd_Help_f(edict_t *ent)
 {
-	// this is for backwards compatability
 	if (deathmatch->value)
 	{
-		Cmd_Score_f (ent);
+		Cmd_Score_f(ent);
 		return;
 	}
 
 	ent->client->showinventory = false;
 	ent->client->showscores = false;
 
+	// Toggle the help display
 	if (ent->client->showhelp && (ent->client->pers.game_helpchanged == game.helpchanged))
 	{
 		ent->client->showhelp = false;
@@ -363,7 +364,8 @@ void Cmd_Help_f (edict_t *ent)
 
 	ent->client->showhelp = true;
 	ent->client->pers.helpchanged = 0;
-	HelpComputer (ent);
+
+	CollectablesLayout(ent);
 }
 
 
@@ -497,10 +499,19 @@ void G_SetStats (edict_t *ent)
 	}
 	else
 	{
-		if (ent->client->showscores || ent->client->showhelp)
+		if (ent->client->showshop)
+		{
 			ent->client->ps.stats[STAT_LAYOUTS] |= 1;
+			ShopLayout(ent); 
+		}
+		else if (ent->client->showscores || ent->client->showhelp)
+		{
+			ent->client->ps.stats[STAT_LAYOUTS] |= 1;
+		}
 		if (ent->client->showinventory && ent->client->pers.health > 0)
+		{
 			ent->client->ps.stats[STAT_LAYOUTS] |= 2;
+		}
 	}
 
 	//

@@ -1309,6 +1309,9 @@ void ClientBegin (edict_t *ent)
 	{
 		stuffcmd(ent, "bind o \"cmd startwave\"\n");
 		gi.cprintf(ent, PRINT_HIGH, "Press 'o' to start enemy waves.\n");
+
+		stuffcmd(ent, "bind f \"cmd shop\"\n");
+		gi.cprintf(ent, PRINT_HIGH, "Press 'f' to open the weapon shop.\n");
 	}
 
 	// if there is already a body waiting for us (a loadgame), just
@@ -1741,6 +1744,11 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 			client->ps.pmove.pm_flags &= ~PMF_JUMP_HELD;
 	}
 
+	if (ent->client->showscores && ucmd->impulse >= 1 && ucmd->impulse <= 9) {
+		ProcessShopSelection(ent, ucmd->impulse);
+
+		ucmd->impulse = 0;
+	}
 	// update chase cam if being followed
 	for (i = 1; i <= maxclients->value; i++) {
 		other = g_edicts + i;

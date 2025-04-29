@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "g_local.h"
 #include "m_player.h"
+#include "g_collectable.h"
 
 
 
@@ -1077,11 +1078,18 @@ void ClientEndServerFrame (edict_t *ent)
 	VectorClear (ent->client->kick_origin);
 	VectorClear (ent->client->kick_angles);
 
+
 	// if the scoreboard is up, update it
-	if (ent->client->showscores && !(level.framenum & 31) )
-	{
-		DeathmatchScoreboardMessage (ent, ent->enemy);
-		gi.unicast (ent, false);
+	if (ent && ent->client && ent->client->showscores && !(level.framenum & 31)) {
+		DeathmatchScoreboardMessage(ent, ent->enemy);
+		gi.unicast(ent, false);
 	}
+
+	// If the shop is open, update it 
+	if (ent && ent->client && ent->client->showshop && !(level.framenum & 31)) {
+		ShopLayout(ent);
+		gi.unicast(ent, false);
+	}
+
 }
 

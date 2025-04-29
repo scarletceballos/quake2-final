@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "g_local.h"
 #include "m_player.h"
 
+#include "g_collectable.h"
 
 char *ClientTeam (edict_t *ent)
 {
@@ -915,6 +916,106 @@ void Cmd_BindWaveKey_f(edict_t* ent)
 	gi.cprintf(ent, PRINT_HIGH, "Bound the 'o' key to start waves.\n");
 }
 
+void Cmd_BindShopKey_f(edict_t* ent)
+{
+	stuffcmd(ent, "bind f \"cmd shop\"\n");
+	gi.cprintf(ent, PRINT_HIGH, "Bound the 'f' key to open the weapon shop.\n");
+}
+
+void Cmd_DisplayTotalCollectables_f(edict_t* ent) {
+	if (deathmatch->value && !sv_cheats->value) {
+		gi.cprintf(ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
+		return;
+	}
+
+	// Array of collectables
+	Collectable playerCollectables[] = {
+		{ COLLECTABLE_WOOD, 0 },
+		{ COLLECTABLE_METAL, 0 },
+		{ COLLECTABLE_STONE, 0 },
+		{ COLLECTABLE_ORE, 0 },
+		{ COLLECTABLE_MECHANICAL_PARTS, 0 },
+	};
+
+	playerCollectables[COLLECTABLE_WOOD].quantity = ent->client->pers.inventory[COLLECTABLE_WOOD];
+	playerCollectables[COLLECTABLE_METAL].quantity = ent->client->pers.inventory[COLLECTABLE_METAL];
+	playerCollectables[COLLECTABLE_STONE].quantity = ent->client->pers.inventory[COLLECTABLE_STONE];
+	playerCollectables[COLLECTABLE_ORE].quantity = ent->client->pers.inventory[COLLECTABLE_ORE];
+	playerCollectables[COLLECTABLE_MECHANICAL_PARTS].quantity = ent->client->pers.inventory[COLLECTABLE_MECHANICAL_PARTS];
+
+	int totalQuantity = 0;
+	size_t count = sizeof(playerCollectables) / sizeof(playerCollectables[0]);
+
+	gi.cprintf(ent, PRINT_HIGH, "Current Collectables:\n");
+	for (size_t i = 0; i < count; ++i) {
+		const char* typeName = Collectable_GetTypeName(playerCollectables[i].type);
+		int quantity = playerCollectables[i].quantity;
+
+		gi.cprintf(ent, PRINT_HIGH, "%s: %d\n", typeName, quantity);
+		totalQuantity += quantity;
+	}
+
+	gi.cprintf(ent, PRINT_HIGH, "Total Collectables: %d\n", totalQuantity);
+}
+
+void Cmd_GiveCollectables_f(edict_t* ent) {
+	if (deathmatch->value && !sv_cheats->value) {
+		gi.cprintf(ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
+		return;
+	}
+
+	// Add one of each collectable type to inventory
+	ent->client->pers.inventory[COLLECTABLE_WOOD]++;
+	ent->client->pers.inventory[COLLECTABLE_METAL]++;
+	ent->client->pers.inventory[COLLECTABLE_STONE]++;
+	ent->client->pers.inventory[COLLECTABLE_ORE]++;
+	ent->client->pers.inventory[COLLECTABLE_MECHANICAL_PARTS]++;
+
+	gi.cprintf(ent, PRINT_HIGH, "+1 of each Collectable type added to inventory.\n");
+
+	Cmd_DisplayTotalCollectables_f(ent);
+}
+
+/*
+==================
+Cmd_BuyWeapon_f
+Purchase a weapon using collectables
+==================
+*/
+void Cmd_BuyWeapon_f(edict_t* ent)
+{
+
+	if (!ent || !ent->client || !weapon_costs) {
+		gi.cprintf(NULL, PRINT_HIGH, "Invalid parameters for buy command.\n");
+		return;
+	}
+
+	char* weapon_name;
+
+	if (gi.argc() < 2) {
+		gi.cprintf(ent, PRINT_HIGH, "Usage: buyweapon <weapon name>\n");
+		gi.cprintf(ent, PRINT_HIGH, "Available weapons:\n");
+
+		for (int i = 0; weapon_costs[i].weapon_name != NULL; i++) {
+			gi.cprintf(ent, PRINT_HIGH, "%s - Wood: %d, Metal: %d, Stone: %d, Ore: %d, Mech Parts: %d\n",
+				weapon_costs[i].weapon_name,
+				weapon_costs[i].wood_cost,
+				weapon_costs[i].metal_cost,
+				weapon_costs[i].stone_cost,
+				weapon_costs[i].ore_cost,
+				weapon_costs[i].mech_parts_cost
+			);
+		}
+
+		return;
+	}
+
+	weapon_name = gi.argv(1);
+
+	PurchaseWeapon(ent, weapon_name);
+
+	gi.cprintf(ent, PRINT_HIGH, "Attempting to buy weapon: %s\n", weapon_name);
+}
 
 /*
 =================
@@ -964,6 +1065,24 @@ void ClientCommand (edict_t *ent)
 	if (Q_stricmp(cmd, "bindwavekey") == 0)
 	{
 		Cmd_BindWaveKey_f(ent);
+		return;
+	}
+
+	if (Q_stricmp(cmd, "displaytotalcollectables") == 0) {
+		Cmd_DisplayTotalCollectables_f(ent);
+		return;
+	}
+	if (Q_stricmp(cmd, "givecollectables") == 0) {
+		Cmd_GiveCollectables_f(ent);
+		return;
+	}
+	if (Q_stricmp(cmd, "showcollectables") == 0) {
+		Cmd_ShowCollectables_f(ent);
+		return;
+	}
+	else if (Q_stricmp(cmd, "shop") == 0)
+	{
+		Cmd_Shop_f(ent);
 		return;
 	}
 
