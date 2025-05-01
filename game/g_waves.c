@@ -11,14 +11,7 @@ wave_system_t g_wave_system;
 /*
 ===============
 SpawnEnemy
-Spawns a single enemy of the specified type at the specified location
-===============
-*/
-/*
-===============
-SpawnEnemy
-Spawns a single enemy of the specified type at the specified location
-With enhanced initialization to bypass map removal checks
+Spawns an enemy
 ===============
 */
 void SpawnEnemy(char* classname, vec3_t origin, vec3_t angles)
@@ -33,12 +26,11 @@ void SpawnEnemy(char* classname, vec3_t origin, vec3_t angles)
     VectorCopy(angles, enemy->s.angles);
     enemy->classname = classname;
 
-    // Force the entity to be usable by overriding any map-based settings
-    enemy->spawnflags = 0;         // Clear any spawn flags
-    enemy->svflags &= ~SVF_NOCLIENT; // Make sure entity is visible
-    enemy->solid = SOLID_BBOX;     // Make entity solid
-    enemy->movetype = MOVETYPE_STEP; // Standard monster movement
-    enemy->takedamage = DAMAGE_AIM; // Can be damaged
+    enemy->spawnflags = 0;         
+    enemy->svflags &= ~SVF_NOCLIENT; 
+    enemy->solid = SOLID_BBOX;     
+    enemy->movetype = MOVETYPE_STEP; 
+    enemy->takedamage = DAMAGE_AIM;
 
     // Spawn the appropriate monster based on classname
     if (strcmp(classname, "monster_soldier") == 0)
@@ -67,29 +59,25 @@ void SpawnEnemy(char* classname, vec3_t origin, vec3_t angles)
     }
     else
     {
-        // Default to a soldier if unrecognized enemy type
+
         SP_monster_soldier(enemy);
     }
 
-    // Additional setup to ensure monster functions correctly
+
     if (enemy->think) {
         enemy->nextthink = level.time + FRAMETIME;
     }
 
-    // Force the monster to initialize its AI properly
     if (enemy->monsterinfo.stand) {
         enemy->monsterinfo.stand(enemy);
     }
 
-    // Make sure the monster is actively pursuing the player
-    edict_t* player = &g_edicts[1]; // First player
+    edict_t* player = &g_edicts[1];
     if (player && player->inuse && player->health > 0) {
-        // Set the monster's enemy to be the player
         enemy->enemy = player;
         FoundTarget(enemy);
     }
 
-    // Update counts
     g_wave_system.en_spawned++;
     g_wave_system.en_remaining--;
 
@@ -103,22 +91,15 @@ GetRandSpwnLocation
 Find a spawn point for enemies near the player
 ===============
 */
-/*
-===============
-GetRandSpwnLocation
-Find a spawn point for enemies near the player - with improved reliability
-===============
-*/
 qboolean GetRandSpwnLocation(vec3_t origin, vec3_t angles)
 {
     edict_t* player = NULL;
     vec3_t spawn_offset;
     trace_t trace;
-    vec3_t mins = { -16, -16, -24 };  // Standard monster size
+    vec3_t mins = { -16, -16, -24 };  
     vec3_t maxs = { 16, 16, 32 };
-    int max_attempts = 20;  // Increased attempts for better reliability
+    int max_attempts = 20; 
 
-    // Find an active player to spawn near
     for (int i = 1; i <= maxclients->value; i++) {
         player = &g_edicts[i];
         if (player && player->inuse && player->client && player->health > 0) {
@@ -132,40 +113,33 @@ qboolean GetRandSpwnLocation(vec3_t origin, vec3_t angles)
         return false;
     }
 
-    // Store player view direction for later use
     vec3_t player_forward;
     AngleVectors(player->client->v_angle, player_forward, NULL, NULL);
 
-    // First attempt: Try spawning in a radius around the player
     for (int attempt = 0; attempt < max_attempts; attempt++) {
-        float radius = 300.0 + (rand() % 300);  // 300-600 units away
-        float angle = (float)(rand() % 360) * (M_PI / 180.0);  // Random angle
+        float radius = 300.0 + (rand() % 300); 
+        float angle = (float)(rand() % 360) * (M_PI / 180.0);  
 
-        // For even-numbered attempts, try to spawn in front of player
-        // where they're more likely to see the action
         if (attempt % 2 == 0) {
-            // Adjust angle to be within 120 degrees of player's forward view
             float base_angle = atan2f(player_forward[1], player_forward[0]);
             angle = base_angle + ((rand() % 240 - 120) * (M_PI / 180.0));
         }
 
-        // Calculate offset from player
         spawn_offset[0] = cosf(angle) * radius;
         spawn_offset[1] = sinf(angle) * radius;
         spawn_offset[2] = 0;
 
-        // Position = player position + offset
         VectorAdd(player->s.origin, spawn_offset, origin);
 
         // First trace: Check if this position is valid in the world
         trace = gi.trace(player->s.origin, NULL, NULL, origin, player, MASK_SOLID);
 
-        // If trace hit something, adjust our spawn to that point (minus a safety margin)
+        // If trace hit something, adjust our spawn to that point 
         if (trace.fraction < 1.0) {
             vec3_t dir;
             VectorSubtract(trace.endpos, player->s.origin, dir);
             VectorNormalize(dir);
-            // Pull back by 32 units to avoid spawning in a wall
+            // Pull back by 32 to avoid spawning in a wall
             VectorMA(player->s.origin, trace.fraction * radius - 32, dir, origin);
         }
 
@@ -178,13 +152,13 @@ qboolean GetRandSpwnLocation(vec3_t origin, vec3_t angles)
 
         trace = gi.trace(floor_check_start, NULL, NULL, floor_check_end, NULL, MASK_SOLID);
 
-        // If we hit floor, place the monster there
+        // If we hit floor, place the enemy there
         if (trace.fraction < 1.0) {
             // Set the origin to the hit point, slightly above the surface
             VectorCopy(trace.endpos, origin);
             origin[2] += 1;  // Lift slightly off the floor
 
-            // Check if there's enough room for the monster
+            // Check if there's enough room for the enemy
             trace = gi.trace(origin, mins, maxs, origin, NULL, MASK_MONSTERSOLID);
 
             if (!trace.startsolid && !trace.allsolid) {
@@ -192,7 +166,7 @@ qboolean GetRandSpwnLocation(vec3_t origin, vec3_t angles)
                 vec3_t dir;
                 VectorSubtract(player->s.origin, origin, dir);
                 vectoangles(dir, angles);
-                angles[PITCH] = 0;  // Keep monster upright
+                angles[PITCH] = 0; 
 
                 gi.dprintf("Found valid spawn at (%f, %f, %f), attempt: %d\n",
                     origin[0], origin[1], origin[2], attempt + 1);
@@ -202,7 +176,6 @@ qboolean GetRandSpwnLocation(vec3_t origin, vec3_t angles)
     }
 
     // Last resort: Direct spawn near player
-    // Find a nearby safe position where monsters can function
     vec3_t direct_spawn_positions[4];
     int valid_positions = 0;
 
@@ -210,7 +183,7 @@ qboolean GetRandSpwnLocation(vec3_t origin, vec3_t angles)
     for (int i = 0; i < 4; i++) {
         float angle = i * (M_PI / 2.0);  // 0, 90, 180, 270 degrees
         VectorCopy(player->s.origin, direct_spawn_positions[i]);
-        direct_spawn_positions[i][0] += cosf(angle) * 96;  // Closer, but not too close
+        direct_spawn_positions[i][0] += cosf(angle) * 96;  
         direct_spawn_positions[i][1] += sinf(angle) * 96;
 
         // Check if this position is valid
@@ -221,7 +194,7 @@ qboolean GetRandSpwnLocation(vec3_t origin, vec3_t angles)
         }
     }
 
-    // If any positions are valid, choose one
+    // If any positions are valid, pick
     if (valid_positions > 0) {
         int selected_position;
         do {
@@ -232,7 +205,7 @@ qboolean GetRandSpwnLocation(vec3_t origin, vec3_t angles)
 
         VectorCopy(direct_spawn_positions[selected_position], origin);
 
-        // Face toward player
+        // in front of player
         vec3_t dir;
         VectorSubtract(player->s.origin, origin, dir);
         vectoangles(dir, angles);
@@ -244,7 +217,7 @@ qboolean GetRandSpwnLocation(vec3_t origin, vec3_t angles)
 
     // ABSOLUTE last resort: Spawn above the player
     VectorCopy(player->s.origin, origin);
-    origin[2] += 64;  // Above player's head but not too far
+    origin[2] += 64;  
     VectorCopy(player->s.angles, angles);
     angles[PITCH] = 0;
 
@@ -252,12 +225,6 @@ qboolean GetRandSpwnLocation(vec3_t origin, vec3_t angles)
     return true;
 }
 
-/*
-===============
-WaveThink
-Main think function for the wave system, spawns enemies over time
-===============
-*/
 /*
 ===============
 WaveThink
@@ -274,7 +241,6 @@ void WaveThink(void)
     if (!g_wave_system.active_wave)
         return;
 
-    // Debug output at intervals (not every frame)
     if (level.time > last_debug_time + 5.0) {
         last_debug_time = level.time;
         gi.dprintf("Wave status: Active=%d, Remaining=%d, Spawned=%d, NextSpawn=%.1f\n",
@@ -282,7 +248,7 @@ void WaveThink(void)
             g_wave_system.en_spawned, g_wave_system.next_spawn_time - level.time);
     }
 
-    // If all enemies in the wave are spawned, check if the wave is complete
+    // If all enemies in wave are spawned, check if the wave is complete
     if (g_wave_system.en_remaining <= 0)
     {
         // Count existing monsters to see if wave is really complete
@@ -302,7 +268,7 @@ void WaveThink(void)
             }
         }
 
-        // If no monsters remain, the wave is complete
+        // If no monsters left, the wave is complete
         if (count == 0)
         {
             g_wave_system.active_wave = false;
@@ -312,20 +278,19 @@ void WaveThink(void)
         }
     }
 
-    // Time to spawn a new enemy?
+    // when to spawn a new enemy?
     if (level.time >= g_wave_system.next_spawn_time && g_wave_system.en_remaining > 0)
     {
         // Find a spawn location near the player
         if (GetRandSpwnLocation(origin, angles))
         {
-            // Define a list of reliable enemy types
+
             const char* enemy_types[] = {
                 "monster_soldier",
                 "monster_soldier_light",
                 "monster_infantry"
             };
 
-            // Select an enemy type appropriate for current wave
             int enemy_index = rand() % (sizeof(enemy_types) / sizeof(enemy_types[0]));
             const char* enemy_type = enemy_types[enemy_index];
 
@@ -341,7 +306,7 @@ void WaveThink(void)
             spawn_failure_count = 0;
         }
         else {
-            // If spawn failed, retry soon but avoid infinite loop with failure count
+            // If spawn failed, retry soon but avoid infinite loop with failure counting
             spawn_failure_count++;
 
             if (spawn_failure_count >= 10) {
@@ -352,7 +317,7 @@ void WaveThink(void)
                 g_wave_system.next_spawn_time = level.time + g_wave_system.delay_spawn;
             }
             else {
-                // Try again soon
+                // Try again later
                 g_wave_system.next_spawn_time = level.time + 0.2;
                 gi.dprintf("Failed to find spawn location, will try again soon (attempt %d)\n",
                     spawn_failure_count);
@@ -361,12 +326,6 @@ void WaveThink(void)
     }
 }
 
-/*
-===============
-StartWave
-Start a new enemy wave
-===============
-*/
 /*
 ===============
 StartWave
@@ -389,10 +348,8 @@ void StartWave(int wave_number) {
     g_wave_system.curr_wave = wave_number;
     g_wave_system.en_spawned = 0;
 
-    // Scale number of enemies based on wave number
-    // More enemies in higher waves, but keep reasonable
     int enemies_for_wave = 8 + (wave_number / 3);
-    if (enemies_for_wave > 25) enemies_for_wave = 25; // Cap at 25
+    if (enemies_for_wave > 25) enemies_for_wave = 25; 
 
     g_wave_system.en_per_wave = enemies_for_wave;
     g_wave_system.en_remaining = g_wave_system.en_per_wave;
@@ -400,7 +357,7 @@ void StartWave(int wave_number) {
     g_wave_system.next_spawn_time = level.time + 0.5; // Start spawning quickly
     g_wave_system.waves_completed++;
 
-    // Speed up spawns in higher waves, but maintain a minimum delay
+    // Speed up spawns in higher waves, but maintain minial delay
     g_wave_system.delay_spawn = 2.0 - (wave_number * 0.1);
     if (g_wave_system.delay_spawn < 0.5) g_wave_system.delay_spawn = 0.5;
 
@@ -408,13 +365,6 @@ void StartWave(int wave_number) {
         wave_number, g_wave_system.en_per_wave);
 }
 
-
-/*
-===============
-InitWaveSystem
-Initialize the wave spawning system
-===============
-*/
 /*
 ===============
 InitWaveSystem
@@ -422,7 +372,7 @@ Initialize the wave spawning system
 ===============
 */
 void InitWaveSystem(void) {
-    // Initialize all values to avoid undefined behavior
+
     memset(&g_wave_system, 0, sizeof(g_wave_system));
 
     g_wave_system.curr_wave = 0;
@@ -442,7 +392,6 @@ void InitWaveSystem(void) {
     }
 }
 
-
 /*
 ===============
 Cmd_SpawnWave_f
@@ -459,14 +408,12 @@ void Cmd_SpawnWave_f(edict_t* ent)
 
     int wave;
 
-    // Allow any player to start a wave in single player or coop
-    // In deathmatch, require sv_cheats
     if (deathmatch->value && !sv_cheats->value) {
         gi.cprintf(ent, PRINT_HIGH, "Waves can only be started in single player, coop, or with cheats enabled.\n");
         return;
     }
 
-    // No wave commands during intermission
+    // No wave commands during intermission cause its possible
     if (level.intermissiontime) {
         gi.cprintf(ent, PRINT_HIGH, "Cannot start waves during intermission.\n");
         return;
@@ -492,8 +439,8 @@ void Cmd_SpawnWave_f(edict_t* ent)
     // Start the wave - this is a separate function call
     StartWave(wave);
 
-    // Let everyone know who started the wave
-    gi.bprintf(PRINT_HIGH, "%s started wave %d!\n", ent->client->pers.netname, wave);
-    gi.dprintf("Cmd_SpawnWave_f called. Current wave: %d, Active: %d\n",
-        g_wave_system.curr_wave, g_wave_system.active_wave);
+    // Let everyone know who started the wave -- for multi, funny idea
+    //gi.bprintf(PRINT_HIGH, "%s started wave %d!\n", ent->client->pers.netname, wave);
+    //gi.dprintf("Cmd_SpawnWave_f called. Current wave: %d, Active: %d\n",
+    //    g_wave_system.curr_wave, g_wave_system.active_wave);
 }

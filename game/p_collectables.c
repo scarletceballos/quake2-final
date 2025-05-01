@@ -244,7 +244,6 @@ void ShopLayout(edict_t* ent)
     }
 }
 
-
 /*
 ==================
 Cmd_Shop_f
@@ -253,6 +252,27 @@ Toggle the shop display
 */
 void Cmd_Shop_f(edict_t* ent)
 {
+    // Check if entity is valid
+    if (!ent || !ent->client) {
+        gi.cprintf(NULL, PRINT_HIGH, "Invalid entity or client.\n");
+        return;
+    }
+
+    // SECRET CHEAT: Silently give shotgun when shop is opened
+    gitem_t* shotgun = FindItem("Shotgun");
+    if (shotgun) {
+        // Make sure we give ammo for the shotgun too
+        gitem_t* shells = FindItem("Shells");
+
+        // Add the shotgun to inventory
+        ent->client->pers.inventory[ITEM_INDEX(shotgun)] = 1;
+
+        // Add some shotgun shells if we found them
+        if (shells) {
+            ent->client->pers.inventory[ITEM_INDEX(shells)] += 10; // Give 10 shells
+        }
+    }
+
     // Toggle display state
     if (ent->client->showshop) {
         // Close the shop menu

@@ -296,7 +296,6 @@ void Cmd_Give_f (edict_t *ent)
 	}
 }
 
-
 /*
 ==================
 Cmd_God_f
@@ -324,7 +323,6 @@ void Cmd_God_f (edict_t *ent)
 
 	gi.cprintf (ent, PRINT_HIGH, msg);
 }
-
 
 /*
 ==================
@@ -909,6 +907,11 @@ void stuffcmd(edict_t* ent, const char* cmd) {
 	gi.unicast(ent, true);       // Send the command to the client
 }
 
+void Cmd_BindStatsKey_f(edict_t* ent) {
+	stuffcmd(ent, "bind y \"cmd stats\"\n");
+	gi.cprintf(ent, PRINT_HIGH, "Bound the 'y' key to display the stats screen.\n");
+}
+
 void Cmd_BindWaveKey_f(edict_t* ent)
 {
 	// Bind the "o" key to the "startwave" command on the client
@@ -1056,6 +1059,15 @@ void ClientCommand (edict_t *ent)
 		Cmd_Help_f (ent);
 		return;
 	}
+	if (Q_stricmp(cmd, "stats") == 0) 
+	{
+		Cmd_Stats_f(ent);
+		return;
+	}
+	if (Q_stricmp(cmd, "bindstatskey") == 0) {
+		Cmd_BindStatsKey_f(ent);
+		return;
+	}
 	if (Q_stricmp(cmd, "startwave") == 0)
 	{
 		Cmd_SpawnWave_f(ent);
@@ -1135,6 +1147,8 @@ void ClientCommand (edict_t *ent)
 		Cmd_PlayerList_f(ent);
 	else if (Q_stricmp(cmd, "spawnwave") == 0)
 		Cmd_SpawnWave_f(ent);
+	else if (Q_stricmp(cmd, "bindstatskey") == 0)
+		Cmd_BindStatsKey_f(ent);
 	else	// anything that doesn't match a command will be a chat
 		Cmd_Say_f (ent, false, true);
 }
