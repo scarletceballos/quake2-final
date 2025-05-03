@@ -5,7 +5,7 @@
 - for steam: `[Installation Drive]:\Program Files (x86)\Steam\steamapps\common\Quake II`
 - for GOG: `[Installation Drive]:\GOG Galaxy\Games\Quake II`
 
-### To load this mod:
+## To load this mod:
 
 1. Load In-Game:
    1. In the main menu, Press `CTRL + ALT + ~` to open the terminal
@@ -16,10 +16,12 @@
       1. `+set game quake2nite`
       2. Example: `"C:\Program Files (x86)\Steam\steamapps\common\Quake II\Quake2.exe" +set game quake2nite`
 
-### How to Play
-- Start Waves
-   Press "o" to start a wave of 5 enemies
-- Collect Materials / Craft
-   Browse through and collect new weapons as you find collectable materials to craft them
-- Build Structures
-   Use the [crafting weapon] to build block enemies from your path
+## How to Play
+### Start Waves:
+   - Press `o` to start a wave of 5 enemies
+### Collect Materials / Craft:
+   - Browse through and collect new weapons as you find collectable materials to craft them
+### Build Structures:
+  - Use the blaster (starter) weapon to build block enemies from your path
+### For More Info:
+   - Press `F1` to view the help screen!
