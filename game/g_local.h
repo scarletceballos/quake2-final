@@ -934,6 +934,7 @@ struct gclient_s
 	qboolean	showhelpicon;
 	qboolean	showshop; 
 	int			ammo_index;
+	int			chaingun_heat;
 
 	int			buttons;
 	int			oldbuttons;

@@ -518,9 +518,9 @@ void monster_death_use(edict_t *self) {
 		self->item = NULL;
 	}
 
-	if (random() < 0.5) 
-	{ // 50% chance to drop a collectable here
-		int collectableType = COLLECTABLE_WOOD + (int)(random() * (COLLECTABLE_MECHANICAL_PARTS - COLLECTABLE_WOOD + 1));
+	if (random() < 0.7) 
+	{ // 70% chance to drop a collectable here
+		int collectableType = COLLECTABLE_WOOD + (int)(random() * (COLLECTABLE_MECHANICAL_PARTS - COLLECTABLE_WOOD + 4));
 
 		if (collectableType >= COLLECTABLE_WOOD && collectableType <= COLLECTABLE_MECHANICAL_PARTS) {
 			char itemName[50];
